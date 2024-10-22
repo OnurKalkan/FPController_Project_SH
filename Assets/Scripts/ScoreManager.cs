@@ -11,18 +11,25 @@ public class ScoreManager : MonoBehaviour
     private void Awake()
     {
         uimanager = GetComponent<UIManager>();
+        roundNo = PlayerPrefs.GetInt("RoundNo", 0);
+        blueTeamScore = PlayerPrefs.GetInt("BlueTeamScore", 0);
+        redTeamScore = PlayerPrefs.GetInt("RedTeamScore", 0);
     }
 
     public void IncreaseScore(TeamPlayer.TeamColor tColor)
     {
-        if(tColor == TeamPlayer.TeamColor.BlueTeam)
+        roundNo++;
+        PlayerPrefs.SetInt("RoundNo", roundNo);
+        if (tColor == TeamPlayer.TeamColor.BlueTeam)
         {
             blueTeamScore++;
+            PlayerPrefs.SetInt("BlueTeamScore", blueTeamScore);
             uimanager.ScoreUpdate();
         }
         else if (tColor == TeamPlayer.TeamColor.RedTeam)
         {
             redTeamScore++;
+            PlayerPrefs.SetInt("RedTeamScore", redTeamScore);
             uimanager.ScoreUpdate();
         }
     }

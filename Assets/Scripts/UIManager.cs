@@ -7,17 +7,19 @@ using UnityEngine.SceneManagement;
 public class UIManager : MonoBehaviour
 {
     Baseball baseBall;
-    public GameObject inGameMenu, endGameMenu;
-    public TextMeshProUGUI redTeamText, blueTeamText, roundNoText, matchDayInfoText;
+    public GameObject inGameMenu, endGameMenu, matchResult;
+    public TextMeshProUGUI redTeamText, blueTeamText, roundNoText, matchDayInfoText, gameSpeedText;
     public TextMeshPro redTeamEText, blueTeamEText;
     ScoreManager scoreManager;
-    GamaManager gameManager;
+    GameManager gameManager;
+    public int gameSpeed = 1;
+    public Material redMat, blueMat;
 
     private void Awake()
     {
         baseBall = GameObject.FindWithTag("Baseball").GetComponent<Baseball>();
         scoreManager = GetComponent<ScoreManager>();
-        gameManager = GetComponent<GamaManager>();
+        gameManager = GetComponent<GameManager>();
     }
 
     private void Start()
@@ -25,18 +27,82 @@ public class UIManager : MonoBehaviour
         StartMenu();
         MatchDayInfo();
         ScoreUpdate();
+        Time.timeScale = gameSpeed;
+        if (scoreManager.roundNo > 2)
+        {
+            GameObject shooter = GameObject.FindWithTag("Shooter");
+            shooter.GetComponent<Renderer>().material = redMat;
+            shooter.GetComponent<TeamPlayer>().teamColor = TeamPlayer.TeamColor.RedTeam;
+            GameObject thrower = GameObject.FindWithTag("Thrower");
+            thrower.GetComponent<Renderer>().material = blueMat;
+            thrower.GetComponent<TeamPlayer>().teamColor = TeamPlayer.TeamColor.BlueTeam;
+            GameObject[] baseThrowers = GameObject.FindGameObjectsWithTag("BaseTh");
+            foreach (GameObject bt in baseThrowers)
+            {
+                bt.GetComponent<Renderer>().material = blueMat;
+                bt.GetComponent<TeamPlayer>().teamColor = TeamPlayer.TeamColor.BlueTeam;
+            }
+            GameObject[] holders = GameObject.FindGameObjectsWithTag("Holder");
+            foreach (GameObject holder in holders)
+            {
+                holder.GetComponent<Renderer>().material = blueMat;
+                holder.GetComponent<TeamPlayer>().teamColor = TeamPlayer.TeamColor.BlueTeam;
+            }
+        }
     }
 
     public void StartMenu()
     {
         inGameMenu.SetActive(true);
         endGameMenu.SetActive(false);
+        matchResult.SetActive(false);
+    }
+
+    public void GameSpeed()
+    {
+        if(gameSpeed == 1)
+        {
+            gameSpeed++;
+            Time.timeScale = gameSpeed;
+            gameSpeedText.text = "SPEED X" + gameSpeed;
+        }
+        else if (gameSpeed == 2)
+        {
+            gameSpeed++;
+            Time.timeScale = gameSpeed;
+            gameSpeedText.text = "SPEED X" + gameSpeed;
+        }
+        else
+        {
+            gameSpeed = 1;
+            Time.timeScale = gameSpeed;
+            gameSpeedText.text = "SPEED X" + gameSpeed;
+        }
     }
 
     public void EndMenu()
     {
         inGameMenu.SetActive(false);
         endGameMenu.SetActive(true);
+        MatchDayInfo();
+        if(scoreManager.roundNo == 6)
+        {
+            matchResult.SetActive(true);
+        }            
+        else
+            Invoke(nameof(ResetTheGame), 4);
+    }
+
+    public void PlayAgain()
+    {
+        PlayerPrefs.DeleteAll();
+        Invoke(nameof(ResetTheGame), 4);
+    }
+
+    public void ExitTheGame()
+    {
+        PlayerPrefs.DeleteAll();
+        Application.Quit();
     }
 
     public void ScoreUpdate()

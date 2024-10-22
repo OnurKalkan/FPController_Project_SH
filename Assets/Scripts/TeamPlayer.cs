@@ -1,9 +1,6 @@
 ﻿using DG.Tweening;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.WSA;
 
 public class TeamPlayer : MonoBehaviour
 {
@@ -18,11 +15,14 @@ public class TeamPlayer : MonoBehaviour
     public Transform[] bases;//shooterlar icin
     public int baseCounter = 0, baseThCounter = 1;
     public GameObject firstThrower = null;
+    GameManager gameManager;
 
+    #region AWAKE_START_UPDATE
     private void Awake()
     {
         scoreManager = GameObject.Find("GameManager").GetComponent<ScoreManager>();
         uiManager = GameObject.Find("GameManager").GetComponent<UIManager>();
+        gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
     }
 
     void Start()
@@ -30,6 +30,20 @@ public class TeamPlayer : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         baseball = GameObject.FindWithTag("Baseball");
     }
+
+    private void Update()
+    {
+        if (playerType == PlayerType.Holder)
+        {
+            if (runToBall && !baseball.GetComponent<Baseball>().catched)
+                agent.destination = baseball.transform.position;
+            else if (!runToBall && baseball.GetComponent<Baseball>().catched)
+                agent.speed = 0;
+        }
+    }
+    #endregion
+
+    #region Enums
 
     public enum FormationType
     {
@@ -50,28 +64,13 @@ public class TeamPlayer : MonoBehaviour
         Holder,
         BaseThrowers
     }
-
-    private void Update()
-    {
-        if(playerType == PlayerType.Holder)
-        {
-            if (runToBall && !baseball.GetComponent<Baseball>().catched)
-                agent.destination = baseball.transform.position;
-            else if (!runToBall && baseball.GetComponent<Baseball>().catched)
-                agent.speed = 0;
-        }        
-    }
-
-    void BaseballFree()
-    {
-        baseball.transform.parent = null;
-    }
+    #endregion        
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Baseball"))
         {
-            if(playerType == PlayerType.BaseThrowers)
+            if(playerType == PlayerType.BaseThrowers)//base throwerlar icin top atislari
             {
                 if (GetComponent<BaseThrower>().throwerNo == 1)
                 {
@@ -81,7 +80,7 @@ public class TeamPlayer : MonoBehaviour
                         if (throwers[i].GetComponent<BaseThrower>().throwerNo == baseThCounter)
                             firstThrower = throwers[i];
                     }
-                    baseball.transform.DOMove(firstThrower.transform.position, 2).SetDelay(0.5f);
+                    baseball.transform.DOMove(firstThrower.transform.position, 2).SetDelay(0.5f).SetEase(Ease.Linear);
                 }
                 else if (GetComponent<BaseThrower>().throwerNo < 4 && GetComponent<BaseThrower>().throwerNo > 1)
                 {
@@ -95,14 +94,18 @@ public class TeamPlayer : MonoBehaviour
                         if (throwers[i].GetComponent<BaseThrower>().throwerNo == baseThCounter)
                             firstThrower = throwers[i];                        
                     }
-                    baseball.transform.DOMove(firstThrower.transform.position, 2).SetDelay(0.5f);
+                    baseball.transform.DOMove(firstThrower.transform.position, 2).SetDelay(0.5f).SetEase(Ease.Linear);
                 }
                 else if (GetComponent<BaseThrower>().throwerNo == 4)
                 {
                     //final kontrolu
+                    if (!gameManager.roundEnd)
+                    {
+                        RoundEnd(teamColor);
+                    }
                 }
             }            
-            else if (playerType == PlayerType.Holder && !other.GetComponent<Baseball>().catched)
+            else if (playerType == PlayerType.Holder && !other.GetComponent<Baseball>().catched)//catcherlar icin topu yakalama
             {
                 baseball.GetComponent<Rigidbody>().isKinematic = true;
                 baseball.transform.DOLocalMove(new Vector3(-0.82f, 0.45f, 0.2f), 0.5f).OnComplete(BaseballFree);
@@ -118,7 +121,7 @@ public class TeamPlayer : MonoBehaviour
                             firstThrower = throwers[i];
                         throwers[i].GetComponent<TeamPlayer>().baseThCounter++;
                     }                    
-                    baseball.transform.DOMove(firstThrower.transform.position, 2).SetDelay(0.6f);
+                    baseball.transform.DOMove(firstThrower.transform.position, 2).SetDelay(0.6f).SetEase(Ease.Linear);
                 }
                 else if (!other.GetComponent<Baseball>().groundTouch && !other.GetComponent<Baseball>().catched)
                 {
@@ -149,8 +152,18 @@ public class TeamPlayer : MonoBehaviour
             {
                 agent.speed = 0;
                 //final hesaplamasi
+                if (!gameManager.roundEnd)
+                {
+                    RoundEnd(teamColor);
+                }
             }
         }
+    }
+
+    #region Custom_Methods
+    void BaseballFree()
+    {
+        baseball.transform.parent = null;
     }
 
     void OpenEndMenu()
@@ -163,4 +176,12 @@ public class TeamPlayer : MonoBehaviour
         agent.destination = bases[baseCounter].position;
         baseCounter++;
     }
+
+    public void RoundEnd(TeamColor tColor)
+    {
+        gameManager.roundEnd = true;
+        scoreManager.IncreaseScore(tColor);
+        Invoke(nameof(OpenEndMenu), 1);
+    }
+    #endregion
 }

@@ -2,17 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GamaManager : MonoBehaviour
+public class GameManager : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    public bool roundEnd, resetData;
 
-    // Update is called once per frame
-    void Update()
+    private void Start()
     {
-        
+        if (resetData) 
+        {
+            PlayerPrefs.DeleteAll();
+        }
     }
 }
