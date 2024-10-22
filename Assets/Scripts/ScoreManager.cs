@@ -4,15 +4,26 @@ using UnityEngine;
 
 public class ScoreManager : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    public int blueTeamScore = 0, redTeamScore = 0, roundNo = 1;
+    TeamPlayer.TeamColor teamColor;
+    UIManager uimanager;
+
+    private void Awake()
     {
-        
+        uimanager = GetComponent<UIManager>();
     }
 
-    // Update is called once per frame
-    void Update()
+    public void IncreaseScore(TeamPlayer.TeamColor tColor)
     {
-        
+        if(tColor == TeamPlayer.TeamColor.BlueTeam)
+        {
+            blueTeamScore++;
+            uimanager.ScoreUpdate();
+        }
+        else if (tColor == TeamPlayer.TeamColor.RedTeam)
+        {
+            redTeamScore++;
+            uimanager.ScoreUpdate();
+        }
     }
 }

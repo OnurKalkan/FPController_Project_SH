@@ -7,6 +7,12 @@ TagManager:
   - Baseball
   - Holder
   - Supporter
+  - Ground
+  - Shooter
+  - Base
+  - Base Thrower
+  - Thrower
+  - BaseTh
   layers:
   - Default
   - TransparentFX

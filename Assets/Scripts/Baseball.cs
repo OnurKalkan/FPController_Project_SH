@@ -8,7 +8,7 @@ public class Baseball : MonoBehaviour
 {
     public Transform baseballHitPoint;
     public int hitSpeed = 100;
-    public bool ballThrowed = false, catched = false;
+    public bool ballThrowed = false, catched = false, groundTouch = false;
     public Transform stick;
 
     // Start is called before the first frame update
@@ -48,7 +48,13 @@ public class Baseball : MonoBehaviour
     {
         stick.transform.parent = null;
         stick.AddComponent<Rigidbody>();
+        ShooterToRun();
         HoldersToRun();
+    }
+
+    void ShooterToRun()
+    {
+        GameObject.FindWithTag("Shooter").GetComponent<TeamPlayer>().HomeRun();
     }
 
     void HoldersToRun()
@@ -57,6 +63,14 @@ public class Baseball : MonoBehaviour
         for (int i = 0; i < holders.Length; i++)
         {
             holders[i].GetComponent<TeamPlayer>().runToBall = true;
+        }
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Ground") && !groundTouch)
+        {
+            groundTouch = true;
         }
     }
 }
